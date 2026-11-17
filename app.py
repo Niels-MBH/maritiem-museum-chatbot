@@ -356,22 +356,57 @@ VRAAG VAN DE BEZOEKER:
         answer = response.text or ""
         print(f"TEST: Gemini-antwoord ontvangen: {answer}")
 
+    
     except Exception as e:
-        print(f"Fout bij Gemini: {e}")
-        st.error("Gemini geeft deze fout:")
-        st.code(str(e))
-        return "Er ging iets mis bij het ophalen van het antwoord."
+        error_text = str(e)
+        error_upper = error_text.upper()
 
-    if not answer:
-        return "Ik kon helaas geen antwoord maken. Probeer het opnieuw."
+        code = str(getattr(e, "code", ""))
+        status = str(getattr(e, "status", "")).upper()
 
+        st.error("⚠️ GEMINI-DIAGNOSE")
 
-    sources = list(dict.fromkeys(
-        fragment["source"] for fragment in fragments
-    ))
-    source_text = "\\n".join(f"- {source}" for source in sources)
+        if "API_KEY_INVALID" in error_upper:
+            diagnosis = "API-SLEUTEL ONGELDIG"
+            explanation = "Google accepteert de API-sleutel niet."
 
-    return f"{answer}\\n\\n**Gebruikte bronnen:**\\n{source_text}"
+        elif "RESOURCE_EXHAUSTED" in error_upper or "429" in code:
+            diagnosis = "GEMINI OVERBELAST OF LIMIET BEREIKT"
+            explanation = "De API-limiet is bereikt. Controleer je gebruik en quota."
+
+        elif "DEADLINE_EXCEEDED" in error_upper or "504" in code:
+            diagnosis = "TIME-OUT"
+            explanation = "Gemini heeft niet op tijd gereageerd."
+
+        elif "UNAVAILABLE" in error_upper or "503" in code:
+            diagnosis = "GEMINI TIJDELIJK NIET BESCHIKBAAR"
+            explanation = "De Google-server kan momenteel geen aanvraag verwerken."
+
+        elif "NOT_FOUND" in error_upper or "404" in code:
+            diagnosis = "MODEL NIET GEVONDEN"
+            explanation = "Het gekozen model bestaat niet of is niet toegankelijk."
+
+        elif "TIMEOUT" in error_upper:
+            diagnosis = "VERBINDING TIME-OUT"
+            explanation = "De verbinding met Gemini duurde te lang."
+
+        else:
+            diagnosis = "ONBEKENDE GEMINI-FOUT"
+            explanation = "Bekijk de technische fout hieronder."
+
+        st.subheader(diagnosis)
+        st.write(explanation)
+
+        st.write("Technische fout:")
+        secret = globals().get("api_key", "")
+        safe_error = error_text.replace(secret, "[API-SLEUTEL VERBORGEN]") if secret else error_text
+        st.code(safe_error)
+
+        print(f"GEMINI-DIAGNOSE: {diagnosis}")
+        print(f"GEMINI-FOUT: {safe_error}")
+
+        return f"Gemini-probleem: {diagnosis}. {explanation}"
+
 
 
 # --------------------------------------------------
