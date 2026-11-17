@@ -340,10 +340,9 @@ MUSEUMINFORMATIE:
 VRAAG VAN DE BEZOEKER:
 {question}
 """
-
     print("TEST: Gemini-aanvraag wordt gestart...")
 
-        try:
+    try:
         response = client.models.generate_content(
             model=MODEL_NAME,
             contents=prompt,
@@ -365,6 +364,7 @@ VRAAG VAN DE BEZOEKER:
 
     if not answer:
         return "Ik kon helaas geen antwoord maken. Probeer het opnieuw."
+
 
     sources = list(dict.fromkeys(
         fragment["source"] for fragment in fragments
