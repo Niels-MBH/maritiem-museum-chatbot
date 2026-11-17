@@ -23,7 +23,7 @@ KNOWLEDGE_DIR = BASE_DIR / "kennisbank"
 
 load_dotenv(BASE_DIR / ".env")
 
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+MODEL_NAME = "gemini-2.5-flash"
 CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 200
 MAX_RESULTS = 3
