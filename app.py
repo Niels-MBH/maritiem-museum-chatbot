@@ -342,10 +342,10 @@ VRAAG VAN DE BEZOEKER:
 {question}
 """
     print("TEST: Gemini-aanvraag wordt gestart...")
-
+    try:
         start_gemini = time.perf_counter()
 
-    try:
+   
         response = client.models.generate_content(
             model=MODEL_NAME,
             contents=prompt,
