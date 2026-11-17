@@ -1,6 +1,7 @@
 import re
 import html
 import os
+import time
 from pathlib import Path
 
 import streamlit as st
@@ -342,6 +343,8 @@ VRAAG VAN DE BEZOEKER:
 """
     print("TEST: Gemini-aanvraag wordt gestart...")
 
+        start_gemini = time.perf_counter()
+
     try:
         response = client.models.generate_content(
             model=MODEL_NAME,
@@ -349,63 +352,33 @@ VRAAG VAN DE BEZOEKER:
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTIONS,
                 temperature=0.2,
-                max_output_tokens=800,
-            ),
+                max_output_tokens=500
+            )
         )
 
-        answer = response.text or ""
-        print(f"TEST: Gemini-antwoord ontvangen: {answer}")
+        gemini_tijd = time.perf_counter() - start_gemini
 
-    
+        st.success(
+            f"Gemini heeft geantwoord in {gemini_tijd:.2f} seconden."
+        )
+
+        return response.text
+
     except Exception as e:
-        error_text = str(e)
-        error_upper = error_text.upper()
+        gemini_tijd = time.perf_counter() - start_gemini
 
-        code = str(getattr(e, "code", ""))
-        status = str(getattr(e, "status", "")).upper()
+        st.error("Gemini heeft een fout gegeven.")
+        st.write(f"Model: {MODEL_NAME}")
+        st.write(f"Tijd tot fout: {gemini_tijd:.2f} seconden")
+        st.write(f"Soort fout: {type(e).__name__}")
+        st.code(str(e))
 
-        st.error("⚠️ GEMINI-DIAGNOSE")
+        print(f"GEMINI-MODEL: {MODEL_NAME}")
+        print(f"GEMINI-TIJD: {gemini_tijd:.2f} seconden")
+        print(f"GEMINI-FOUTTYPE: {type(e).__name__}")
+        print(f"GEMINI-FOUT: {e}")
 
-        if "API_KEY_INVALID" in error_upper:
-            diagnosis = "API-SLEUTEL ONGELDIG"
-            explanation = "Google accepteert de API-sleutel niet."
-
-        elif "RESOURCE_EXHAUSTED" in error_upper or "429" in code:
-            diagnosis = "GEMINI OVERBELAST OF LIMIET BEREIKT"
-            explanation = "De API-limiet is bereikt. Controleer je gebruik en quota."
-
-        elif "DEADLINE_EXCEEDED" in error_upper or "504" in code:
-            diagnosis = "TIME-OUT"
-            explanation = "Gemini heeft niet op tijd gereageerd."
-
-        elif "UNAVAILABLE" in error_upper or "503" in code:
-            diagnosis = "GEMINI TIJDELIJK NIET BESCHIKBAAR"
-            explanation = "De Google-server kan momenteel geen aanvraag verwerken."
-
-        elif "NOT_FOUND" in error_upper or "404" in code:
-            diagnosis = "MODEL NIET GEVONDEN"
-            explanation = "Het gekozen model bestaat niet of is niet toegankelijk."
-
-        elif "TIMEOUT" in error_upper:
-            diagnosis = "VERBINDING TIME-OUT"
-            explanation = "De verbinding met Gemini duurde te lang."
-
-        else:
-            diagnosis = "ONBEKENDE GEMINI-FOUT"
-            explanation = "Bekijk de technische fout hieronder."
-
-        st.subheader(diagnosis)
-        st.write(explanation)
-
-        st.write("Technische fout:")
-        secret = globals().get("api_key", "")
-        safe_error = error_text.replace(secret, "[API-SLEUTEL VERBORGEN]") if secret else error_text
-        st.code(safe_error)
-
-        print(f"GEMINI-DIAGNOSE: {diagnosis}")
-        print(f"GEMINI-FOUT: {safe_error}")
-
-        return f"Gemini-probleem: {diagnosis}. {explanation}"
+        return "Gemini kon niet op tijd antwoorden. Probeer het opnieuw."
 
 
 
