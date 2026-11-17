@@ -394,6 +394,12 @@ st.write(
 api_key = os.getenv("GEMINI_API_KEY", "").strip()
 
 if not api_key:
+    try:
+        api_key = st.secrets["GEMINI_API_KEY"].strip()
+    except (KeyError, FileNotFoundError):
+        api_key = ""
+
+if not api_key:
     st.error(
         "De Gemini API-sleutel ontbreekt. Controleer of je in het "
         ".env-bestand GEMINI_API_KEY hebt ingesteld."
