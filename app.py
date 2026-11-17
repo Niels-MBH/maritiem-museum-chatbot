@@ -357,11 +357,10 @@ VRAAG VAN DE BEZOEKER:
         print(f"TEST: Gemini-antwoord ontvangen: {answer}")
 
     except Exception as e:
-        print(f"Fout bij Gemini: {e}")
-        return (
-            "Het lukt momenteel niet om een antwoord van de AI te krijgen. "
-            "Probeer het over een minuut opnieuw."
-        )
+    print(f"Fout bij Gemini: {e}")
+    st.error("Gemini geeft deze fout:")
+    st.code(str(e))
+    return "Er ging iets mis bij het ophalen van het antwoord."
 
     if not answer:
         return "Ik kon helaas geen antwoord maken. Probeer het opnieuw."
