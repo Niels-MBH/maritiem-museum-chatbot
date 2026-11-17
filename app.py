@@ -343,7 +343,7 @@ VRAAG VAN DE BEZOEKER:
 
     print("TEST: Gemini-aanvraag wordt gestart...")
 
-    try:
+        try:
         response = client.models.generate_content(
             model=MODEL_NAME,
             contents=prompt,
@@ -353,10 +353,11 @@ VRAAG VAN DE BEZOEKER:
                 max_output_tokens=800,
             ),
         )
+
         answer = response.text or ""
         print(f"TEST: Gemini-antwoord ontvangen: {answer}")
 
-        except Exception as e:
+    except Exception as e:
         print(f"Fout bij Gemini: {e}")
         st.error("Gemini geeft deze fout:")
         st.code(str(e))
