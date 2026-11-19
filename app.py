@@ -349,7 +349,7 @@ VRAAG VAN DE BEZOEKER:
         response = client.models.generate_content(
             model=MODEL_NAME,
             contents="Antwoord uitsluitend met OK."
-        )
+        
         )
 
         gemini_tijd = time.perf_counter() - start_gemini
