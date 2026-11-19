@@ -348,7 +348,12 @@ VRAAG VAN DE BEZOEKER:
    
         response = client.models.generate_content(
             model=MODEL_NAME,
-            contents="Antwoord uitsluitend met OK."
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTIONS,
+                temperature=0.2,
+                max_output_tokens=500
+) 
         
         )
 
