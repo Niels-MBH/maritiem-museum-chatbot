@@ -367,6 +367,31 @@ def blur_bad_words(text):
     return text
 
 
+def transcribe_audio(audio_bytes, client):
+    """Zet een Nederlandse WAV-opname om naar tekst met hetzelfde Gemini-model."""
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=[
+            (
+                "Zet deze audio-opname nauwkeurig om naar geschreven tekst. "
+                "De spreker spreekt Nederlands. Geef uitsluitend de letterlijk "
+                "herkende vraag terug, zonder uitleg, aanhalingstekens of antwoord. "
+                "Als er geen verstaanbare spraak is, geef dan een lege tekst terug."
+            ),
+            types.Part.from_bytes(
+                data=audio_bytes,
+                mime_type="audio/wav",
+            ),
+        ],
+        config=types.GenerateContentConfig(
+            temperature=0,
+            max_output_tokens=150,
+        ),
+    )
+
+    return (response.text or "").strip()
+
+
 # --------------------------------------------------
 # GEMINI ANTWOORD LATEN GENEREREN
 # --------------------------------------------------
@@ -584,11 +609,30 @@ question = st.chat_input("Typ je vraag aan het museum...")
 audio_value = st.audio_input(
     "Of spreek je vraag in via de microfoon",
     sample_rate=16000,
-    key="microfoon"
+    key="microfoon",
 )
 
-if audio_value:
-    st.audio(audio_value, format="audio/wav")
+# De bezoeker drukt zelf op deze knop om de opname te laten herkennen.
+# Zo wordt dezelfde opname niet bij iedere Streamlit-herhaling opnieuw verstuurd.
+send_voice = st.button(
+    "Verstuur gesproken vraag",
+    disabled=audio_value is None,
+)
+
+if not question and send_voice and audio_value is not None:
+    try:
+        with st.spinner("Ik luister naar je vraag..."):
+            question = transcribe_audio(audio_value.getvalue(), client)
+
+        if not question:
+            st.warning(
+                "Ik kon je vraag niet goed verstaan. "
+                "Probeer het nog een keer of typ je vraag."
+            )
+    except Exception as exc:
+        st.error("De spraakherkenning is niet gelukt.")
+        st.caption(f"Fouttype: {type(exc).__name__}")
+        st.code(str(exc))
 
 
 if question:
