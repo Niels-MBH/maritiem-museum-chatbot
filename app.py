@@ -578,8 +578,17 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 
-# Vraag invoeren.
-question = st.chat_input("Stel je vraag aan het museum...")
+# Vraag invoeren via tekst of microfoon.
+question = st.chat_input("Typ je vraag aan het museum...")
+
+audio_value = st.audio_input(
+    "Of spreek je vraag in via de microfoon",
+    sample_rate=16000,
+    key="microfoon"
+)
+
+if audio_value:
+    st.audio(audio_value, format="audio/wav")
 
 
 if question:
